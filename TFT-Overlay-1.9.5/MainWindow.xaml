@@ -1,0 +1,642 @@
+﻿<Window x:Class="TFT_Overlay.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TFT_Overlay"
+        xmlns:p="clr-namespace:TFT_Overlay.Properties"
+        xmlns:vm="clr-namespace:TFT_Overlay.ViewModel"
+        mc:Ignorable="d"
+        DataContext="{StaticResource Locator}"
+        ResizeMode="CanResizeWithGrip"
+        Height="{Binding Source={x:Static p:Settings.Default}, Path=Height, Mode=TwoWay}"                
+        MinWidth="1600"
+        MaxWidth="1600"
+        Top="{Binding Source={x:Static p:Settings.Default}, Path=Top, Mode=TwoWay}"
+        Left="{Binding Source={x:Static p:Settings.Default}, Path=Left, Mode=TwoWay}"
+        MouseLeftButtonDown="MainWindow_MouseLeftButtonDown"
+        MouseLeftButtonUp="MainWindow_MouseLeftButtonUp"
+        MouseRightButtonDown="MainWindow_MouseRightButtonDown"
+        MouseRightButtonUp="MainWindow_MouseRightButtonUp"
+        Closing="MainWindow_Closing"
+        Title="TFT-Overlay" AllowsTransparency="True" WindowStyle="None" Background="Transparent" Topmost="True">
+
+    <ContentControl>
+        <ContentControl.ContentTemplate>
+            <DataTemplate>
+                <DataTemplate.Resources>
+                    <!--IfChecked = Visible, Unchecked = Hidden-->
+                    <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+                    <!--RadioButton Converter (Group Across All Tabs)-->
+                    <local:RadioConverter x:Key="RadioConverter"/>
+                </DataTemplate.Resources>
+                <!-- The Buttons and Tabs that make up the Bar.  The Hypothetical Plate! -->
+                <Viewbox HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <WrapPanel>
+                        <Grid Width="Auto">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="17"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="850"/>
+                            </Grid.RowDefinitions>
+                            <Rectangle Width="60" Fill="DarkOrange" Height="10" ToolTip="Right click for options or drag to move" HorizontalAlignment="Left" Margin="75 0 0 0">
+                                <Rectangle.ContextMenu>
+                                    <ContextMenu Cursor="{DynamicResource LoLHover}">
+                                        <MenuItem x:Name="Lock" Header="Lock" IsChecked="{Binding Source={x:Static p:Settings.Default}, Path=Lock}" Click="MenuItem_Click_Lock" Foreground="Black"/>
+                                        <MenuItem x:Name="ResizeLock" Header="Resize" IsChecked="False" IsCheckable="True" Foreground="Black"/>
+                                        <MenuItem x:Name="OnTop" Header="Always On Top" IsChecked="True" IsCheckable="True" Click="MenuItem_Click_OnTop" Foreground="Black"/>
+                                        <Separator Width="Auto" Height="2"/>
+                                        <MenuItem x:Name="Localization"  Header="Language" Foreground="Black">
+                                            <MenuItem Header="English">
+                                                <MenuItem Header="en-US" Click="Localization_Handler"/>
+                                            </MenuItem>
+                                            <MenuItem Header="Deutsche">
+                                                <MenuItem Header="de-DE" Click="Localization_Handler"/>
+                                            </MenuItem>
+                                            <MenuItem Header="Español">
+                                                <MenuItem Header="es-AR" Click="Localization_Handler"/>
+                                                <MenuItem Header="es-MX" Click="Localization_Handler"/>
+                                            </MenuItem>
+                                            <MenuItem Header="Français">
+                                                <MenuItem Header="fr-FR" Click="Localization_Handler"/>
+                                            </MenuItem>
+                                            <MenuItem Header="Italiano">
+                                                <MenuItem Header="it-IT" Click="Localization_Handler"/>
+                                            </MenuItem>
+                                            <MenuItem Header="日本語">
+                                                <MenuItem Header="JA" Click="Localization_Handler"/>
+                                            </MenuItem>
+                                            <MenuItem Header="Polski">
+                                                <MenuItem Header="PL" Click="Localization_Handler"/>
+                                            </MenuItem>
+                                            <MenuItem Header="Português">
+                                                <MenuItem Header="pt-BR" Click="Localization_Handler"/>
+                                            </MenuItem>
+                                            <MenuItem Header="Pусский">
+                                                <MenuItem Header="RU" Click="Localization_Handler"/>
+                                            </MenuItem>
+                                            <MenuItem Header="Tiếng Việt">
+                                                <MenuItem Header="vi-VN" Click="Localization_Handler"/>
+                                            </MenuItem>
+                                            <MenuItem Header="中文">
+                                                <MenuItem Header="zh-CN" Click="Localization_Handler"/>
+                                                <MenuItem Header="zh-TW" Click="Localization_Handler"/>
+                                            </MenuItem>
+                                            <Separator Width="Auto" Height="2"/>
+                                            <MenuItem Header="Credits" Click="Localization_Credits"/>
+                                        </MenuItem>
+                                        <Separator Width="Auto" Height="2"/>
+                                        <MenuItem Header="About" Click="MenuItem_Click_About" Foreground="Black"/>
+                                        <MenuItem Header="Credits" Click="MenuItem_Click_Credits" Foreground="Black"/>
+                                        <Separator Width="Auto" Height="2"/>
+                                        <MenuItem x:Name="AutoDim" Header="Auto-Dim" Click="AutoDim_Click" IsChecked="{Binding Source={x:Static p:Settings.Default}, Path=AutoDim}" Foreground="Black"/>
+                                        <MenuItem x:Name="AutoUpdate" Header="Auto-Updater" IsChecked="{Binding Source={x:Static p:Settings.Default}, Path=AutoUpdate}" Click="MenuItem_AutoUpdate" Foreground="Black"/>
+                                        <Separator Width="Auto" Height="2"/>
+                                        <MenuItem Header="Exit" Click="MenuItem_Click" Foreground="Black"/>
+                                    </ContextMenu>
+                                </Rectangle.ContextMenu>
+                            </Rectangle>
+                            <Slider Name="OpacitySlider" Margin="8 0 0 0" HorizontalAlignment="Left" VerticalAlignment="Bottom" Grid.Row="0" Minimum="0" Maximum="1" Orientation="Horizontal" Value=".5" Style="{DynamicResource Custom_Slider}" ToolTip="Opacity"></Slider>
+                            <ResizeGrip Grid.Column="0" Grid.Row="1" HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="{Binding IsChecked, ElementName=ResizeLock, Converter={StaticResource BooleanToVisibilityConverter}}" Style="{DynamicResource VisibleResizeGrip}" Cursor="{DynamicResource LoLNormal}"/>
+                            <!--Start of Tabs-->
+                            <local:TabControlRadio Background="Transparent" BorderThickness="0" x:Name="RadioTabs" Grid.Row="1">
+                                <!-- Main Tab -->
+                                <TabItem x:Name="MainTab" Header="MAIN" Style="{DynamicResource Tabstyle}">
+                                    <WrapPanel>
+                                        <local:OptionalRadioButton x:Name="BFS"  GroupName="Toggle" Width="Auto" Height="Auto" Grid.Column="1" Background="Transparent" BorderBrush="Transparent" IsChecked="{Binding ElementName=RadioTabs, Path=RadioGroup, Converter={StaticResource RadioConverter}, ConverterParameter=Items}" MouseLeftButtonDown="MainWindow_MouseLeftButtonDown" MouseLeftButtonUp="MainWindow_MouseLeftButtonUp">
+                                            <local:OptionalRadioButton.Content>
+                                                <Border Width="Auto" Height="Auto" Padding="2.5 0 0 0" Margin="0 0 0 0" BorderBrush="Transparent" CornerRadius="0 0 0 0" BorderThickness="0" Background="Transparent">
+                                                    <Border BorderBrush="Transparent" Background="Transparent">
+                                                        <Image Source="Images\Cstyle\BFPM.png" Height="44" Width="44"/>
+                                                    </Border>
+                                                </Border>
+                                            </local:OptionalRadioButton.Content>
+                                        </local:OptionalRadioButton>
+                                        <local:OptionalRadioButton  x:Name="Bow"  GroupName="Toggle"  Width="Auto" Height="Auto" Grid.Column="2" Background="Transparent" BorderBrush="Transparent" IsChecked="{Binding ElementName=RadioTabs, Path=RadioGroup, Converter={StaticResource RadioConverter}, ConverterParameter=Items1}">
+                                            <local:OptionalRadioButton.Content>
+                                                <Border Width="Auto" Height="Auto" Padding="0 0 0 0" Margin="0 0 0 0" BorderBrush="Transparent" CornerRadius="0 0 0 0" BorderThickness="0" Background="Transparent">
+                                                    <Border>
+                                                        <Image Source="Images\Cstyle\BowPM.png" Height="44" Width="44"/>
+                                                    </Border>
+                                                </Border>
+                                            </local:OptionalRadioButton.Content>
+                                        </local:OptionalRadioButton>
+                                        <local:OptionalRadioButton x:Name="Rod" GroupName="Toggle" Width="Auto" Height="Auto" Grid.Column="3" Background="Transparent" BorderBrush="Transparent" IsChecked="{Binding ElementName=RadioTabs, Path=RadioGroup, Converter={StaticResource RadioConverter}, ConverterParameter=Items2}">
+                                            <local:OptionalRadioButton.Content>
+                                                <Border Width="Auto" Height="Auto" Padding="0 0 0 0" Margin="0 0 0 0" BorderBrush="Transparent" CornerRadius="20 20 20 20" BorderThickness="0" Background="Transparent">
+                                                    <Border>
+                                                        <Image Source="Images\Cstyle\RodPM.png" Height="44" Width="44"/>
+                                                    </Border>
+                                                </Border>
+                                            </local:OptionalRadioButton.Content>
+                                        </local:OptionalRadioButton>
+                                        <local:OptionalRadioButton x:Name="Tear" GroupName="Toggle" Width="Auto" Height="Auto" Grid.Column="4" Background="Transparent" BorderBrush="Transparent" IsChecked="{Binding ElementName=RadioTabs, Path=RadioGroup, Converter={StaticResource RadioConverter}, ConverterParameter=Items3}">
+                                            <local:OptionalRadioButton.Content>
+                                                <Border Width="Auto" Height="Auto" Padding="0 0 0 0" Margin="0 0 0 0" BorderBrush="Transparent" CornerRadius="20 20 20 20" BorderThickness="0" Background="Transparent">
+                                                    <Border>
+                                                        <Image Source="Images\Cstyle\TearPM.png" Height="44" Width="44"/>
+                                                    </Border>
+                                                </Border>
+                                            </local:OptionalRadioButton.Content>
+                                        </local:OptionalRadioButton>
+                                        <local:OptionalRadioButton x:Name="Vest" GroupName="Toggle" Width="Auto" Height="Auto" Grid.Column="5" Background="Transparent" BorderBrush="Transparent" IsChecked="{Binding ElementName=RadioTabs, Path=RadioGroup, Converter={StaticResource RadioConverter}, ConverterParameter=Items4}">
+                                            <local:OptionalRadioButton.Content>
+                                                <Border Width="Auto" Height="Auto" Padding="0 0 0 0" Margin="0 0 0 0" BorderBrush="Transparent" CornerRadius="20 20 20 20" BorderThickness="0" Background="Transparent">
+                                                    <Border>
+                                                        <Image Source="Images\Cstyle\VestPM.png" Height="44" Width="44"/>
+                                                    </Border>
+                                                </Border>
+                                            </local:OptionalRadioButton.Content>
+                                        </local:OptionalRadioButton>
+                                        <local:OptionalRadioButton x:Name="Cape" GroupName="Toggle" Width="Auto" Height="Auto" Grid.Column="6" Background="Transparent" BorderBrush="Transparent" IsChecked="{Binding ElementName=RadioTabs, Path=RadioGroup, Converter={StaticResource RadioConverter}, ConverterParameter=Items5}">
+                                            <local:OptionalRadioButton.Content>
+                                                <Border Width="Auto" Height="Auto" Padding="0 0 0 0" Margin="0 0 0 0" BorderBrush="Transparent" CornerRadius="20 20 20 20" BorderThickness="0" Background="Transparent">
+                                                    <Border>
+                                                        <Image Source="Images\Cstyle\CapePM.png" Height="44" Width="44"/>
+                                                    </Border>
+                                                </Border>
+                                            </local:OptionalRadioButton.Content>
+                                        </local:OptionalRadioButton>
+                                        <local:OptionalRadioButton x:Name="Belt" GroupName="Toggle" Width="Auto" Height="Auto" Grid.Column="7" Background="Transparent" BorderBrush="Transparent" IsChecked="{Binding ElementName=RadioTabs, Path=RadioGroup, Converter={StaticResource RadioConverter}, ConverterParameter=Items6}">
+                                            <local:OptionalRadioButton.Content>
+                                                <Border Width="Auto" Height="Auto" Padding="0 0 0 0" Margin="0 0 0 0" BorderBrush="Transparent" CornerRadius="20 20 20 20" BorderThickness="0" Background="Transparent">
+                                                    <Border>
+                                                        <Image Source="Images\Cstyle\BeltPM.png" Height="44" Width="44"/>
+                                                    </Border>
+                                                </Border>
+                                            </local:OptionalRadioButton.Content>
+                                        </local:OptionalRadioButton>
+                                        <local:OptionalRadioButton x:Name="Spatula" GroupName="Toggle" Width="Auto" Height="Auto" Grid.Column="8" Background="Transparent" BorderBrush="Transparent" IsChecked="{Binding ElementName=RadioTabs, Path=RadioGroup, Converter={StaticResource RadioConverter}, ConverterParameter=Items7}">
+                                            <local:OptionalRadioButton.Content>
+                                                <Border Width="Auto" Height="Auto" Padding="0 0 0 0" Margin="0 0 0 0" BorderBrush="Transparent" CornerRadius="20 20 20 20" BorderThickness="0" Background="Transparent">
+                                                    <Border>
+                                                        <Image Source="Images\Cstyle\SpatulaPM.png" Height="44" Width="44"/>
+                                                    </Border>
+                                                </Border>
+                                            </local:OptionalRadioButton.Content>
+                                        </local:OptionalRadioButton>
+                                        <local:OptionalRadioButton x:Name="Probability" GroupName="Toggle" Width="Auto" Height="Auto" Grid.Column="1" Background="Transparent" BorderBrush="Transparent" HorizontalAlignment="Left" IsChecked="{Binding ElementName=RadioTabs, Path=RadioGroup, Converter={StaticResource RadioConverter}, ConverterParameter=Chart}">
+                                            <Border Width="Auto" Height="Auto" Padding="0 0 0 0" Margin="0 0 0 0" BorderBrush="Transparent" CornerRadius="20 20 20 20" BorderThickness="0" Background="Transparent">
+                                                <Border>
+                                                    <Image Source="Images\Cstyle\TiersIcon.png" Height="44" Width="44"/>
+                                                </Border>
+                                            </Border>
+                                        </local:OptionalRadioButton>
+                                        <local:OptionalRadioButton x:Name="Origins" GroupName="Toggle" Width="Auto" Height="Auto" Grid.Column="10" Background="Transparent" BorderBrush="Transparent" IsChecked="{Binding ElementName=RadioTabs, Path=RadioGroup, Converter={StaticResource RadioConverter}, ConverterParameter=Origins}">
+                                            <Border Width="Auto" Height="Auto" Padding="0 0 0 0" Margin="0 0 0 0" BorderBrush="Transparent" CornerRadius="20 20 20 20" BorderThickness="0" Background="Transparent">
+                                                <Border>
+                                                    <Image Source="Images\cstyle\origins.png" Height="44" Width="44"/>
+                                                </Border>
+                                            </Border>
+                                        </local:OptionalRadioButton>
+                                        <local:OptionalRadioButton x:Name="Classes" GroupName="Toggle" Width="Auto" Height="Auto" Grid.Column="11" Background="Transparent" BorderBrush="Transparent" IsChecked="{Binding ElementName=RadioTabs, Path=RadioGroup, Converter={StaticResource RadioConverter}, ConverterParameter=Classes}">
+                                            <Border Width="Auto" Height="Auto" Padding="0 0 2.5 0" Margin="0 0 0 0" BorderBrush="Transparent" CornerRadius="20 20 20 20" BorderThickness="0" Background="Transparent">
+                                                <Border>
+                                                    <Image Source="Images\cstyle\classes.png" Height="44" Width="44"/>
+                                                </Border>
+                                            </Border>
+                                        </local:OptionalRadioButton>
+                                    </WrapPanel>
+                                </TabItem>
+                                <!--Items Builder-->
+                                <TabItem x:Name="ItemsBuild" Header="ITEM BUILDER" Style="{DynamicResource Tabstyle}" IsSelected="{Binding ElementName=RadioTabs, Path=RadioGroup, Converter={StaticResource RadioConverter}, ConverterParameter=ItemBuilder}">
+                                    <WrapPanel HorizontalAlignment="Center">
+                                        <local:ItemsCounter x:Name="BFCounter" MaxValue="10" MinValue="0" />
+                                        <local:ItemsCounter x:Name="RecurveBowCounter" MaxValue="10" MinValue="0" />
+                                        <local:ItemsCounter x:Name="RodCounter" MaxValue="10" MinValue="0" />
+                                        <local:ItemsCounter x:Name="TearCounter" MaxValue="10" MinValue="0" />
+                                        <local:ItemsCounter x:Name="ChainVestCounter" MaxValue="10" MinValue="0" />
+                                        <local:ItemsCounter x:Name="NegatronCounter" MaxValue="10" MinValue="0" />
+                                        <local:ItemsCounter x:Name="GiantsBeltCounter" MaxValue="10" MinValue="0" />
+                                        <local:ItemsCounter x:Name="SpatulaCounter" MaxValue="10" MinValue="0" />
+                                    </WrapPanel>
+                                </TabItem>
+                            </local:TabControlRadio>
+                            <!--2nd Frame and Linking Multiple Elements (Modifier)-->
+                            <local:OptionalRadioButton Height="0" Width="0" x:Name="Modifier"></local:OptionalRadioButton>
+                            <Frame Grid.Column="0" Grid.Row="2" x:Name="Frame" Height="Auto" Width="Auto" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+                            <Frame Grid.Column="1" Grid.Row="2" x:Name="Frame2" Height="Auto" Width="Auto" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+                            
+                        </Grid>
+                    </WrapPanel>
+                </Viewbox>
+
+                <!-- Triggers for the buttons -->
+                <DataTemplate.Triggers>
+                    <!--IsChecked-->
+                    <!--Bar Buttons-->
+                    <DataTrigger Binding="{Binding ElementName=Bow, Path=IsChecked}" Value="True">
+                        <Setter TargetName="Frame" Property="ContentTemplate" Value="{StaticResource Recurve1}"/>
+                        <Setter TargetName="Modifier" Property="IsChecked" Value="True"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding ElementName=BFS, Path=IsChecked}" Value="True">
+                        <Setter TargetName="Frame" Property="ContentTemplate" Value="{StaticResource BFSword1}"/>
+                        <Setter TargetName="Modifier" Property="IsChecked" Value="True"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding ElementName=Rod, Path=IsChecked}" Value="True">
+                        <Setter TargetName="Frame" Property="ContentTemplate" Value="{StaticResource NLRod1}"/>
+                        <Setter TargetName="Modifier" Property="IsChecked" Value="True"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding ElementName=Tear, Path=IsChecked}" Value="True">
+                        <Setter TargetName="Frame" Property="ContentTemplate" Value="{StaticResource Mana1}"/>
+                        <Setter TargetName="Modifier" Property="IsChecked" Value="True"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding ElementName=Vest, Path=IsChecked}" Value="True">
+                        <Setter TargetName="Frame" Property="ContentTemplate" Value="{StaticResource ChainVest1}"/>
+                        <Setter TargetName="Modifier" Property="IsChecked" Value="True"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding ElementName=Cape, Path=IsChecked}" Value="True">
+                        <Setter TargetName="Frame" Property="ContentTemplate" Value="{StaticResource Negatron1}"/>
+                        <Setter TargetName="Modifier" Property="IsChecked" Value="True"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding ElementName=Belt, Path=IsChecked}" Value="True">
+                        <Setter TargetName="Frame" Property="ContentTemplate" Value="{StaticResource Giants1}"/>
+                        <Setter TargetName="Modifier" Property="IsChecked" Value="True"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding ElementName=Spatula, Path=IsChecked}" Value="True">
+                        <Setter TargetName="Frame" Property="ContentTemplate" Value="{StaticResource Scarf1}"/>
+                        <Setter TargetName="Modifier" Property="IsChecked" Value="True"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding ElementName=Probability, Path=IsChecked}" Value="True">
+                        <Setter TargetName="Frame" Property="ContentTemplate" Value="{StaticResource Probability}"/>
+                        <Setter TargetName="Modifier" Property="IsChecked" Value="True"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding ElementName=Origins, Path=IsChecked}" Value="True">
+                        <Setter TargetName="Frame" Property="ContentTemplate" Value="{StaticResource Origins}"/>
+                        <Setter TargetName="Modifier" Property="IsChecked" Value="True"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding ElementName=Classes, Path=IsChecked}" Value="True">
+                        <Setter TargetName="Frame" Property="ContentTemplate" Value="{StaticResource Classes}"/>
+                        <Setter TargetName="Modifier" Property="IsChecked" Value="True"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding ElementName=ItemsBuild, Path=IsSelected}" Value="True">
+                        <Setter TargetName="Frame" Property="ContentTemplate" Value="{StaticResource ItemsBuilder}"/>
+                    </DataTrigger>
+                    <!--Default Mouseover-->
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding ElementName=Modifier, Path=IsChecked}" Value="False" />
+                            <Condition Binding="{Binding ElementName=Bow, Path=IsMouseOver}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter TargetName="Frame" Property="ContentTemplate" Value="{StaticResource Recurve}"/>
+                    </MultiDataTrigger>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding ElementName=Modifier, Path=IsChecked}" Value="False" />
+                            <Condition Binding="{Binding ElementName=BFS, Path=IsMouseOver}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter TargetName="Frame" Property="ContentTemplate" Value="{StaticResource BFSword}"/>
+                    </MultiDataTrigger>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding ElementName=Modifier, Path=IsChecked}" Value="False" />
+                            <Condition Binding="{Binding ElementName=Rod, Path=IsMouseOver}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter TargetName="Frame" Property="ContentTemplate" Value="{StaticResource NLRod}"/>
+                    </MultiDataTrigger>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding ElementName=Modifier, Path=IsChecked}" Value="False" />
+                            <Condition Binding="{Binding ElementName=Tear, Path=IsMouseOver}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter TargetName="Frame" Property="ContentTemplate" Value="{StaticResource Mana}"/>
+                    </MultiDataTrigger>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding ElementName=Modifier, Path=IsChecked}" Value="False" />
+                            <Condition Binding="{Binding ElementName=Vest, Path=IsMouseOver}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter TargetName="Frame" Property="ContentTemplate" Value="{StaticResource ChainVest}"/>
+                    </MultiDataTrigger>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding ElementName=Modifier, Path=IsChecked}" Value="False" />
+                            <Condition Binding="{Binding ElementName=Cape, Path=IsMouseOver}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter TargetName="Frame" Property="ContentTemplate" Value="{StaticResource Negatron}"/>
+                    </MultiDataTrigger>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding ElementName=Modifier, Path=IsChecked}" Value="False" />
+                            <Condition Binding="{Binding ElementName=Belt, Path=IsMouseOver}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter TargetName="Frame" Property="ContentTemplate" Value="{StaticResource Giants}"/>
+                    </MultiDataTrigger>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding ElementName=Modifier, Path=IsChecked}" Value="False" />
+                            <Condition Binding="{Binding ElementName=Spatula, Path=IsMouseOver}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter TargetName="Frame" Property="ContentTemplate" Value="{StaticResource Scarf}"/>
+                    </MultiDataTrigger>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding ElementName=Modifier, Path=IsChecked}" Value="False" />
+                            <Condition Binding="{Binding ElementName=Probability, Path=IsMouseOver}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter TargetName="Frame" Property="ContentTemplate" Value="{StaticResource Probability}"/>
+                    </MultiDataTrigger>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding ElementName=Modifier, Path=IsChecked}" Value="False" />
+                            <Condition Binding="{Binding ElementName=Origins, Path=IsMouseOver}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter TargetName="Frame" Property="ContentTemplate" Value="{StaticResource Origins}"/>
+                    </MultiDataTrigger>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding ElementName=Modifier, Path=IsChecked}" Value="False" />
+                            <Condition Binding="{Binding ElementName=Classes, Path=IsMouseOver}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter TargetName="Frame" Property="ContentTemplate" Value="{StaticResource Classes}"/>
+                    </MultiDataTrigger>
+          <!--      <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding ElementName=Modifier, Path=IsChecked}" Value="False" />
+                            <Condition Binding="{Binding ElementName=ItemsBuilder, Path=IsMouseOver}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter TargetName="Frame" Property="ContentTemplate" Value="{StaticResource ItemsBuilder}"/>
+                    </MultiDataTrigger> -->
+
+                    <!--Mouseover And Button is Toggled-->
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding ElementName=Modifier, Path=IsChecked}" Value="True" />
+                            <Condition Binding="{Binding ElementName=Bow, Path=IsMouseOver}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter TargetName="Frame2" Property="ContentTemplate" Value="{StaticResource Recurve}"/>
+                    </MultiDataTrigger>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding ElementName=Modifier, Path=IsChecked}" Value="True" />
+                            <Condition Binding="{Binding ElementName=BFS, Path=IsMouseOver}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter TargetName="Frame2" Property="ContentTemplate" Value="{StaticResource BFSword}"/>
+                    </MultiDataTrigger>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding ElementName=Modifier, Path=IsChecked}" Value="True" />
+                            <Condition Binding="{Binding ElementName=Rod, Path=IsMouseOver}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter TargetName="Frame2" Property="ContentTemplate" Value="{StaticResource NLRod}"/>
+                    </MultiDataTrigger>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding ElementName=Modifier, Path=IsChecked}" Value="True" />
+                            <Condition Binding="{Binding ElementName=Tear, Path=IsMouseOver}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter TargetName="Frame2" Property="ContentTemplate" Value="{StaticResource Mana}"/>
+                    </MultiDataTrigger>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding ElementName=Modifier, Path=IsChecked}" Value="True" />
+                            <Condition Binding="{Binding ElementName=Vest, Path=IsMouseOver}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter TargetName="Frame2" Property="ContentTemplate" Value="{StaticResource ChainVest}"/>
+                    </MultiDataTrigger>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding ElementName=Modifier, Path=IsChecked}" Value="True" />
+                            <Condition Binding="{Binding ElementName=Cape, Path=IsMouseOver}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter TargetName="Frame2" Property="ContentTemplate" Value="{StaticResource Negatron}"/>
+                    </MultiDataTrigger>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding ElementName=Modifier, Path=IsChecked}" Value="True" />
+                            <Condition Binding="{Binding ElementName=Belt, Path=IsMouseOver}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter TargetName="Frame2" Property="ContentTemplate" Value="{StaticResource Giants}"/>
+                    </MultiDataTrigger>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding ElementName=Modifier, Path=IsChecked}" Value="True" />
+                            <Condition Binding="{Binding ElementName=Spatula, Path=IsMouseOver}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter TargetName="Frame2" Property="ContentTemplate" Value="{StaticResource Scarf}"/>
+                    </MultiDataTrigger>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding ElementName=Modifier, Path=IsChecked}" Value="True" />
+                            <Condition Binding="{Binding ElementName=Probability, Path=IsMouseOver}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter TargetName="Frame2" Property="ContentTemplate" Value="{StaticResource Probability}"/>
+                    </MultiDataTrigger>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding ElementName=Modifier, Path=IsChecked}" Value="True" />
+                            <Condition Binding="{Binding ElementName=Origins, Path=IsMouseOver}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter TargetName="Frame2" Property="ContentTemplate" Value="{StaticResource Origins}"/>
+                    </MultiDataTrigger>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding ElementName=Modifier, Path=IsChecked}" Value="True" />
+                            <Condition Binding="{Binding ElementName=Classes, Path=IsMouseOver}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter TargetName="Frame2" Property="ContentTemplate" Value="{StaticResource Classes}"/>
+                    </MultiDataTrigger>
+               <!-- <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding ElementName=Modifier, Path=IsChecked}" Value="True" />
+                            <Condition Binding="{Binding ElementName=ItemsBuilder, Path=IsMouseOver}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <Setter TargetName="Frame2" Property="ContentTemplate" Value="{StaticResource ItemsBuilder}"/>
+                    </MultiDataTrigger> -->
+                </DataTemplate.Triggers>
+            </DataTemplate>
+        </ContentControl.ContentTemplate>
+    </ContentControl>
+
+    <!--Window Resources-->
+    <Window.Resources>
+        <!--Radio Button Style-->
+        <Style TargetType="local:OptionalRadioButton"
+               BasedOn="{StaticResource {x:Type ToggleButton}}" >
+            <Setter Property="IsChecked" Value="False"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="1 2 1 0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                        <Grid x:Name="Chrome" Background="{TemplateBinding Background}" SnapsToDevicePixels="true">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Foreground" Value="Transparent"/>
+                                <Setter Property="Cursor" Value="{DynamicResource LoLPointer}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="Transparent"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource Self}}" Value="true">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="BorderBrush" Value="Transparent"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <!--Slider Button Style-->
+        <Style x:Key="SliderRepeatButton" TargetType="RepeatButton">
+            <Setter Property="SnapsToDevicePixels" Value="true" />
+            <Setter Property="OverridesDefaultStyle" Value="true" />
+            <Setter Property="IsTabStop" Value="false" />
+            <Setter Property="Focusable" Value="false" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton">
+                        <Border  BorderThickness="1" BorderBrush="Black" Background="#09CAE5" Height="10" Width="Auto"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="SliderRepeatButton1" TargetType="RepeatButton">
+            <Setter Property="SnapsToDevicePixels" Value="true" />
+            <Setter Property="OverridesDefaultStyle" Value="true" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton">
+                        <Border SnapsToDevicePixels="True" Background="#C8AA6D"  BorderThickness="1" BorderBrush="#C8AA6D" Height="10" Width="Auto"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="SliderThumb" TargetType="Thumb">
+            <Setter Property="OverridesDefaultStyle" Value="True" />
+            <Setter Property="Cursor" Value="{DynamicResource LoLHover}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Rectangle Height="20" Width="20">
+                            <Rectangle.Fill>
+                                <ImageBrush ImageSource="Images/riversprite.png"></ImageBrush>
+                            </Rectangle.Fill>
+                        </Rectangle>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <ControlTemplate x:Key="Slider"  TargetType="Slider">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" MinWidth="{TemplateBinding MinWidth}" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Track Grid.Column="1" x:Name="PART_Track"   >
+                    <Track.DecreaseRepeatButton>
+                        <RepeatButton Style="{StaticResource SliderRepeatButton1}"  Command="Slider.DecreaseLarge" />
+                    </Track.DecreaseRepeatButton>
+                    <Track.Thumb>
+                        <Thumb Style="{StaticResource SliderThumb}"  />
+                    </Track.Thumb>
+                    <Track.IncreaseRepeatButton>
+                        <RepeatButton Style="{StaticResource SliderRepeatButton}" Command="Slider.IncreaseLarge" />
+                    </Track.IncreaseRepeatButton>
+                </Track>
+            </Grid>
+        </ControlTemplate>
+        <Style x:Key="Custom_Slider" TargetType="Slider">
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="SnapsToDevicePixels" Value="true" />
+            <Setter Property="OverridesDefaultStyle" Value="true" />
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="MinHeight" Value="20" />
+                    <Setter Property="MinWidth" Value="60" />
+                    <Setter Property="Template" Value="{StaticResource Slider}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <!--Resize Style-->
+        <Style TargetType="{x:Type ResizeGrip}">
+            <Setter Property="MinWidth" Value="{DynamicResource {x:Static SystemParameters.VerticalScrollBarWidthKey}}"/>
+            <Setter Property="MinHeight" Value="{DynamicResource {x:Static SystemParameters.HorizontalScrollBarHeightKey}}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ResizeGrip}">
+                        <Grid SnapsToDevicePixels="True" Background="{TemplateBinding Background}">
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Visibility" Value="Hidden"/>
+        </Style>
+        <SolidColorBrush x:Key="ResizeGripperForeground" Color="#B8B4A2"/>
+        <Style x:Key="VisibleResizeGrip" TargetType="{x:Type ResizeGrip}">
+            <Setter Property="MinWidth" Value="{DynamicResource {x:Static SystemParameters.VerticalScrollBarWidthKey}}"/>
+            <Setter Property="MinHeight" Value="{DynamicResource {x:Static SystemParameters.HorizontalScrollBarHeightKey}}"/>
+            <Setter Property="Background" Value="Black"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ResizeGrip}">
+                        <Grid SnapsToDevicePixels="True" Background="{TemplateBinding Background}" Width="15" Height="15">
+                            <Path Fill="White" HorizontalAlignment="Right" Margin="0,0,2,2" VerticalAlignment="Bottom" Data="M 8,0 L 10,0 L 10,2 L 8,2 Z M 4,4 L 6,4 L 6,6 L 4,6 Z M 8,4 L 10,4 L 10,6 L 8,6 Z M 0,8 L 2,8 L 2,10 L 0,10 Z M 4,8 L 6,8 L 6,10 L 4,10 Z M 8,8 L 10,8 L 10,10 L 8,10 Z"/>
+                            <Path Fill="{StaticResource ResizeGripperForeground}" HorizontalAlignment="Right" Margin="0,0,3,3" VerticalAlignment="Bottom" Data="M 8,0 L 10,0 L 10,2 L 8,2 Z M 4,4 L 6,4 L 6,6 L 4,6 Z M 8,4 L 10,4 L 10,6 L 8,6 Z M 0,8 L 2,8 L 2,10 L 0,10 Z M 4,8 L 6,8 L 6,10 L 4,10 Z M 8,8 L 10,8 L 10,10 L 8,10 Z"/>
+                            <Path Data="M8,0L10,0 10,2 8,2z M4,4L6,4 6,6 4,6z M8,4L10,4 10,6 8,6z M0,8L2,8 2,10 0,10z M4,8L6,8 6,10 4,10z M8,8L10,8 10,10 8,10z" Fill="White" HorizontalAlignment="Right" Margin="0,0,2,2" VerticalAlignment="Bottom" />
+                            <Path Data="M8,0L10,0 10,2 8,2z M4,4L6,4 6,6 4,6z M8,4L10,4 10,6 8,6z M0,8L2,8 2,10 0,10z M4,8L6,8 6,10 4,10z M8,8L10,8 10,10 8,10z" Fill="{StaticResource ResizeGripperForeground}" HorizontalAlignment="Right" Margin="0,0,3,3" VerticalAlignment="Bottom" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!--Tab Design-->
+        <Style x:Key="Tabstyle"
+               TargetType="{x:Type TabItem}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TabItem}">
+                        <Border x:Name="Spacer"
+                                Width="Auto"
+                                Height="25"
+                                Padding="5 0 5 0"
+                                Margin="0 0 0 0"
+                                BorderBrush="Transparent"
+                                CornerRadius="0,0,0,0"
+                                BorderThickness="0">
+                            <Border x:Name="Border"
+                                    MinWidth="60"
+                                    Width="Auto"
+                                    Height="25"
+                                    Background="#1e2328"
+                                    BorderBrush="#c8aa6d"
+                                    BorderThickness="2,2,2,2"
+                                    CornerRadius="5,5,5,5"
+                                    Padding="5 0 5 0"
+                                    VerticalAlignment="Center">
+                                <ContentPresenter x:Name="ContentSite"
+                                                  TextElement.FontSize="12"
+                                                  TextElement.FontFamily="{DynamicResource Cabin}"
+                                                  TextElement.Foreground="#cdbe91"
+                                                  VerticalAlignment="Center"
+                                                  HorizontalAlignment="Center"
+                                                  ContentSource="Header"
+                                                  Width="Auto"
+                                                  Height="Auto" />
+                            </Border>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!--Cursor Keys-->
+        <Cursor x:Key="LoLNormal">\Cursor\LoLNormal.cur</Cursor>
+        <Cursor x:Key="LoLPointer">\Cursor\LoLPointer.cur</Cursor>
+        <Cursor x:Key="LoLHover">\Cursor\LoLHover.cur</Cursor>
+    </Window.Resources>
+</Window>
